@@ -63,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         recognition.onresult = async (event) => {
             voiceButton.classList.remove('listening');
-            voiceButton.innerHTML = `Processing...`;
             const transcript = event.results[0][0].transcript;
             const aiResponse = await sendToServer(transcript);
             speak(aiResponse);
@@ -72,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         recognition.onerror = (event) => {
             if (event.error === 'no-speech') {
                 responseArea.textContent = "I didn't hear anything, please try speaking again.";
-                if (isListening) recognition.start(); 
+                if (isListening) setTimeout(() => recognition.start(), 500); 
             } else if (event.error === 'not-allowed') {
                 responseArea.textContent = "Microphone access was denied. Please allow access in your browser settings to use voice mode.";
                 stopVoice();
