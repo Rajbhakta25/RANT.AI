@@ -269,7 +269,8 @@ button.listening .mic-icon {
 .persona-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 15px;
+    gap: 20px;
+    perspective: 1000px;
 }
 
 .persona-btn {
