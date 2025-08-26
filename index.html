@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RANT.AI</title>
+    <link rel="icon" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/icons/cpu.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <button id="menu-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"></path><path d="M8.5 14.5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"></path><path d="M15.5 14.5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"></path><path d="M8 10h8"></path></svg>
+    </button>
+
+    <nav id="side-menu">
+        <h2>Select Persona</h2>
+        <div class="persona-grid">
+            <button class="persona-btn" data-persona="empathetic">
+                <span class="persona-icon">🤝</span>
+                <h3>AI Buddy</h3>
+                <p>An empathetic and validating listener.</p>
+            </button>
+            <button class="persona-btn" data-persona="stoic">
+                <span class="persona-icon">🏛️</span>
+                <h3>Stoic Sage</h3>
+                <p>Offers calm, philosophical wisdom.</p>
+            </button>
+            <button class="persona-btn" data-persona="motivator">
+                <span class="persona-icon">🔥</span>
+                <h3>Motivator</h3>
+                <p>Your energetic, personal cheerleader.</p>
+            </button>
+            <button class="persona-btn" data-persona="curious">
+                <span class="persona-icon">🤔</span>
+                <h3>Curious Mind</h3>
+                <p>Asks gentle, insightful questions.</p>
+        </div>
+    </nav>
+
+    <div id="overlay"></div>
+
+    <h1>RANT.AI</h1>
+    <div class="toggle-container">
+        <button id="text-mode-btn" class="toggle-button active">Text</button>
+        <button id="voice-mode-btn" class="toggle-button">Voice</button>
+    </div>
+
+    <div id="response-area">Select a mode to begin.</div>
+
+    <div id="text-input-container" class="input-area">
+        <textarea id="prompt-input" rows="1" placeholder="Type your rant here..."></textarea>
+        <button id="send-button">Send</button>
+    </div>
+
+     <div id="voice-input-container" class="button-container hidden">
+        <button id="voice-button">
+            <span class="mic-icon">🎙️</span> Start Listening
+        </button>
+        <button id="stop-button" class="hidden">Stop</button>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
