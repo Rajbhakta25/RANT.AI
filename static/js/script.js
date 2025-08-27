@@ -69,16 +69,20 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         recognition.onerror = (event) => {
-            if (event.error === 'no-speech') {
+            if (event.error == 'no-speech') {
                 responseArea.textContent = "I didn't hear anything, please try speaking again.";
-                if (isListening) setTimeout(() => recognition.start(), 500); 
             } else if (event.error === 'not-allowed') {
                 responseArea.textContent = "Microphone access was denied. Please allow access in your browser settings to use voice mode.";
                 stopVoice();
-            } else {
-                responseArea.textContent = `Recognition Error: ${event.error}`;
-                stopVoice();
+            } else if (event.error !== 'aborted') {
+                responseArea.textContent = `An error occured: ${event.error}`;
             }
+        };
+
+        recognition.onend = () => {
+                if (isListening) {
+                    recognition.start();
+                }
         };
     }
 
@@ -145,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function speak(text) {
         if (recognition) recognition.stop();
+        if (recognition) recognition.abort();
         window.speechSynthesis.cancel();
         
         const utterance = new SpeechSynthesisUtterance(text);
@@ -152,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         responseArea.textContent = text;
         responseArea.classList.add('fade-in');
         utterance.onend = () => {
-            if (isListening) {
+            if (isListening && recognition) {
                 recognition.start();
             }
         };
