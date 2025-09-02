@@ -57,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
         recognition.silenceTimeout = 2000;
 
         recognition.onstart = () => {
-            voiceButton.innerHTML = `<span class="mic-icon">🎙️</span> Listening...`;
             voiceButton.classList.add('listening');
         };
         
@@ -112,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         voiceInputContainer.classList.remove('hidden');
         textInputContainer.classList.add('hidden');
         responseArea.textContent = 'Click the microphone to start.';
+        voiceButton.classList.add('listening')
     });
 
     async function sendToServer(prompt) {
@@ -148,7 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function speak(text) {
-        if (recognition) recognition.stop();
         if (recognition) recognition.abort();
         window.speechSynthesis.cancel();
         
@@ -167,11 +166,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function stopVoice() {
         isListening = false;
         if (recognition) recognition.stop();
-        voiceButton.classList.remove('listening');
         window.speechSynthesis.cancel();
         stopButton.classList.add('hidden');
         voiceButton.classList.remove('hidden');
-        voiceButton.innerHTML = `<span class="mic-icon">🎙️</span> Start Listening`;
     }
 
     voiceButton.addEventListener('click', () => {
