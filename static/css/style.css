@@ -7,9 +7,10 @@
     --secondary-text-color: #a0a0a0;
     --accent-color: #007bff;
     --accent-glow: rgba(0, 123, 255, 0.5);
-    --success-color: #12aa26;
+    --success-color: #8A2BE2;
     --danger-color: #dc3545;
     --border-color: #333;
+    --glass-color: rgba(255, 255, 255, 0.300);
 }
 
 body {
@@ -17,8 +18,25 @@ body {
     max-width: 600px;
     margin: 20px auto;
     padding: 20px;
-    background-color: var(--background-color);
     color: var(--primary-text-color);
+    background-color: #000;
+    position: relative;
+    overflow: hidden;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image:
+        linear-gradient(to right, var(--border-color) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 1;
+    z-index: -1;
 }
 
 h1 {
@@ -121,18 +139,19 @@ button {
     color: white;
     border: none;
     border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 400;
     cursor: pointer;
     transition: all 0.3s ease;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
     width: auto;
     min-width: 150px;
     border: 3px solid transparent;
     display: flex;
     align-items: center;
     justify-content: center;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 button:hover:not(:disabled) {
@@ -150,24 +169,57 @@ button:active:not(:disabled) {
     border-radius: 12px;
 }
      
-#send-button, #voice-button {
+#send-button {
     background: var(--accent-gradient);
     border: 2px solid #0056b3;
 }
 
-#send-button:hover:not(:disabled), #voice-button:hover:not(:disabled) {
+#send-button:hover:not(:disabled) {
     box-shadow: 0 0 50px var(--accent-glow);
 }
 
 #voice-button {
-    background-color: var(--success-color);
-    border: 2px solid #6a1eab;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    min-width: 250px;
+    height: 60px;
+}
+
+#voice-button:hover:not(:disabled) {
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.3);
+}
+
+#voice-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+}
+
+#voice-button::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent);
 }
 
 #stop-button {
     background-color: var(--danger-color);
     background: var(--accent-gradient);
-    border: 2px solid #a71d2a
+    border: 2px solid #a71d2a;
+    min-width: 250px;
+    height: 60px;
 }
 
 #stop-button:hover:not(:disabled) {
@@ -194,28 +246,22 @@ button:disabled {
 
 .mic-icon {
     display: inline-block;
-    transition: transform 0.3s ease;
-}
-
-button.listening .mic-icon {
-    animation: pulse 1.5s infinite ease-in-out;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
+    transition: all 0.3s ease;
+    width: 25px;
+    height: 25px;
+    margin-right: 5px;
+    stroke: white;
 }
 
 #menu-icon {
     position: fixed;
-    top: 20px;
+    top: 50px;
     left: 20px;
     background: transparent;
     border: none;
     color: var(--secondary-text-color);
-    width: 60px;
-    height: 60px;
+    width: 70px;
+    height: 70px;
     border-radius: 10%;
     z-index: 1001;
     display: flex;
