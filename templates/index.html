@@ -8,6 +8,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+    <div id="instructions-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close-btn">&times;</button>
+            <div id="modal-text"></div>
+        </div>
+    </div>
+
     <button id="menu-icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"></path><path d="M8.5 14.5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"></path><path d="M15.5 14.5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"></path><path d="M8 10h8"></path></svg>
     </button>
@@ -45,7 +52,7 @@
         <button id="voice-mode-btn" class="toggle-button">Voice</button>
     </div>
 
-    <div id="response-area">Select a mode to begin.</div>
+    <div id="response-area"></div>
 
     <div id="text-input-container" class="input-area">
         <textarea id="prompt-input" rows="1" placeholder="Type your rant here..."></textarea>
@@ -55,9 +62,9 @@
      <div id="voice-input-container" class="button-container hidden">
         <button id="voice-button">
             <svg class="mic-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-            START VOICE MODE!
+            <span id="voice-button-label">START RANTING!</span>
         </button>
-        <button id="stop-button" class="hidden">STOP VOICE MODE!</button>
+        <button id="stop-button" class="hidden">STOP RANTING!</button>
     </div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
