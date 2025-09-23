@@ -12,12 +12,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const sideMenu = document.getElementById('side-menu');
     const overlay = document.getElementById('overlay');
     const personaButtons = document.querySelectorAll('.persona-btn');
-    
+    const instructionsModal = document.getElementById('instructions-modal');
+    const modalText = document.getElementById('modal-text');
+    const modalCloseBtn = document.querySelector('.modal-close-btn');
+    const voiceButtonLabel = document.getElementById('voice-button-label')
     let currentPersona = 'empathetic';
     
+    const mainInstructions = `
+        <h3>Welcome to RANT.AI</h3>
+        <p>This is a private, ephemeral space to speak or type freely. Nothing is saved.</p>
+        <p><strong>Text Mode:</strong> Simply type your thoughts below and press enter on your keyboard or press the <span class="highlight">"SEND"</span> button.</p>
+        <p>Use the menu icon on the top left of the screen to select a different AI persona at any time.</p>
+    `;
+
+    const voiceInstructions = `
+        <h3>Welcome to RANT.AI</h3>
+        <p><strong>Voice Mode:</strong> Click <span class="highlight">"START RANTING!"</span> to start a continuous, hands-free conversation.</p>
+        <p>The AI will listen, respond, and then listen again automatically. Press <span class="highlight">"STOP RANTING!"</span> to stop the session.</p>
+    `;
+
+    function showModal(content) {
+        modalText.innerHTML = content;
+        instructionsModal.classList.add('open');
+        overlay.classList.add('active');
+    }
+
+    function closeModal() {
+        instructionsModal.classList.remove('open');
+        if (!sideMenu.classList.contains('open')) {
+            overlay.classList.remove('active');
+        }
+        updateWelcomeMessage(currentPersona);
+    }
+    
+    modalCloseBtn.addEventListener('click', closeModal);
+    
+    if (!sessionStorage.getItem('hasVisited')) {
+        showModal(mainInstructions);
+        sessionStorage.setItem('hasVisited', 'true');
+    } else {
+        updateWelcomeMessage(currentPersona);  
+    }
+
     function closeMenu() {
         sideMenu.classList.remove('open');
-        overlay.classList.remove('active');
+        if (!instructionsModal.classList.contains('open')) {
+            overlay.classList.remove('active');
+        }
     }
 
     menuIcon.addEventListener('click', () => {
@@ -25,21 +66,45 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.classList.toggle('active');
     });
 
-    overlay.addEventListener('click', closeMenu);
+    overlay.addEventListener('click', () => {
+        closeMenu();
+        closeModal();
+    });
 
     personaButtons.forEach(button => {
         button.addEventListener('click', () => {
             personaButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
             currentPersona = button.getAttribute('data-persona');
+            updateWelcomeMessage(currentPersona);
             closeMenu();
         });
     });
+
+    function updateWelcomeMessage(persona) {
+        let message = "Welcome to RANT.AI! This is a private space to speak or type freely. I'm here to listen.";
+        if (persona === 'stoic') {
+            message = "Greetings. This is a space for reflection. The path to tranquility is open. I am here to listen.";
+        } else if (persona === 'motivator') {
+            message = "Let's go! This is your space to unload and power up. I'm here to help you crush it!";
+        } else if (persona === 'curious') {
+            message = "Hello. What's on your mind? This is a safe space to explore your thoughts. I'm here to listen.";
+        }
+        responseArea.textContent = message;
+    }
+
     document.querySelector('.persona-btn[data-persona="empathetic"]').classList.add('active');
 
     promptInput.addEventListener('input', () => {
         promptInput.style.height = 'auto';
         promptInput.style.height = `${promptInput.scrollHeight}px`;
+    });
+
+    promptInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendButton.click();
+        }
     });
 
     let isListening = false;
@@ -94,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         textInputContainer.classList.remove('hidden');
         voiceInputContainer.classList.add('hidden');
         stopVoice();
-        responseArea.textContent = 'Type a message to begin.';
+        updateWelcomeMessage(currentPersona);
     });
 
     voiceModeBtn.addEventListener('click', () => {
@@ -110,7 +175,13 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleContainer.classList.add('voice-active');
         voiceInputContainer.classList.remove('hidden');
         textInputContainer.classList.add('hidden');
-        responseArea.textContent = 'Click the microphone to start.';
+
+        if (!sessionStorage.getItem('hasSeenVoiceIntro')) {
+            showModal(voiceInstructions);
+            sessionStorage.setItem('hasSeenVoiceIntro', 'true');
+        } else {
+            updateWelcomeMessage(currentPersona);
+        }
         voiceButton.classList.add('listening')
     });
 
@@ -169,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.speechSynthesis.cancel();
         stopButton.classList.add('hidden');
         voiceButton.classList.remove('hidden');
+        voiceButtonLabel.textContent = 'START RANTING!';
     }
 
     voiceButton.addEventListener('click', () => {
@@ -180,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     stopButton.addEventListener('click', () => {
         stopVoice();
-        responseArea.textContent = 'Click the microphone to start.';
+        updateWelcomeMessage(currentPersona);
     });
 
     responseArea.addEventListener('animationend', () => {
