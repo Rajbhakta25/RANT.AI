@@ -29,7 +29,7 @@ def process_rant():
         system_instruction = personas.get(selected_persona, personas["empathetic"])
 
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash-latest",
+            model_name="gemini-2.5-flash",
             system_instruction=system_instruction
         )
 
@@ -54,4 +54,5 @@ def process_rant():
 
 if __name__ == "__main__":
     app.run()
+
 
