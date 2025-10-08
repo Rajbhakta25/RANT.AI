@@ -15,9 +15,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const instructionsModal = document.getElementById('instructions-modal');
     const modalText = document.getElementById('modal-text');
     const modalCloseBtn = document.querySelector('.modal-close-btn');
-    const voiceButtonLabel = document.getElementById('voice-button-label')
+    const deconstructRantBtn = document.getElementById('deconstruct-rant-btn');
+    const mindMapContainer = document.getElementById('mind-map-container');
+    const featureButtonsContainer = document.getElementById('feature-buttons-container');
+    const fitViewBtn = document.getElementById('fit-view-btn');
+
     let currentPersona = 'empathetic';
-    
+    let isListening = false;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+    let mindMapNetwork = null;
+
     const mainInstructions = `
         <h3>Welcome to RANT.AI</h3>
         <p>This is a private, ephemeral space to speak or type freely. Nothing is saved.</p>
@@ -31,6 +39,13 @@ document.addEventListener('DOMContentLoaded', () => {
         <p>The AI will listen, respond, and then listen again automatically. Press <span class="highlight">"STOP RANTING!"</span> to stop the session.</p>
     `;
 
+    const deconstructInstructions = `
+        <h3>RANT HIGHLIGHT!</h3>
+        <p>You can now visually explore your thoughts.</p>
+        <p><strong>Deconstruct:</strong> Click <span class="highlight">"DECONSTRUCT"</span> to turn your conversation into an interactive mind map.</p>
+        <p><strong>Center Map:</strong> Use <span class="highlight">"CENTER MAP"</span> to perfectly fit the entire mind map into view at any time.</p>
+    `;
+
     function showModal(content) {
         modalText.innerHTML = content;
         instructionsModal.classList.add('open');
@@ -42,16 +57,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!sideMenu.classList.contains('open')) {
             overlay.classList.remove('active');
         }
-        updateWelcomeMessage(currentPersona);
     }
-    
+
     modalCloseBtn.addEventListener('click', closeModal);
-    
+    updateWelcomeMessage(currentPersona);
+
     if (!sessionStorage.getItem('hasVisited')) {
         showModal(mainInstructions);
         sessionStorage.setItem('hasVisited', 'true');
     } else {
-        updateWelcomeMessage(currentPersona);  
+        updateWelcomeMessage(currentPersona);
     }
 
     function closeMenu() {
@@ -107,59 +122,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    let isListening = false;
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let recognition;
-
     function setupRecognition() {
         if (!SpeechRecognition || recognition) return;
 
         recognition = new SpeechRecognition();
-        recognition.continuous = false;
+        recognition.continuous = true;
         recognition.interimResults = false;
         recognition.lang = 'en-US';
-        recognition.speechEndTimeout = 1000,
-        recognition.silenceTimeout = 2000;
 
-        recognition.onstart = () => {
-            voiceButton.classList.add('listening');
-        };
-        
         recognition.onresult = async (event) => {
-            voiceButton.classList.remove('listening');
             const transcript = event.results[0][0].transcript;
             const aiResponse = await sendToServer(transcript);
+            featureButtonsContainer.classList.remove('hidden');
+            if (!sessionStorage.getItem('hasSeenDeconstructIntro')) {
+                showModal(deconstructInstructions);
+                sessionStorage.setItem('hasSeenDeconstructIntro', 'true');
+            }
             speak(aiResponse);
         };
 
         recognition.onerror = (event) => {
-            if (event.error == 'no-speech') {
-                responseArea.textContent = "I didn't hear anything, please try speaking again.";
-            } else if (event.error === 'not-allowed') {
-                responseArea.textContent = "Microphone access was denied. Please allow access in your browser settings to use voice mode.";
-                stopVoice();
-            } else if (event.error !== 'aborted') {
-                responseArea.textContent = `An error occured: ${event.error}`;
-            }
-        };
-
-        recognition.onend = () => {
-                if (isListening) {
-                    recognition.start();
-                }
+            console.error("Speech recognition error", event.error);
         };
     }
-
-    const toggleContainer = document.querySelector('.toggle-container');
 
     textModeBtn.addEventListener('click', () => {
         textModeBtn.classList.add('active');
         voiceModeBtn.classList.remove('active');
-        toggleContainer.classList.remove('voice-active');
         textInputContainer.classList.remove('hidden');
         voiceInputContainer.classList.add('hidden');
         stopVoice();
-        updateWelcomeMessage(currentPersona);
     });
 
     voiceModeBtn.addEventListener('click', () => {
@@ -167,30 +159,25 @@ document.addEventListener('DOMContentLoaded', () => {
             responseArea.textContent = "Sorry, your browser doesn't support voice recognition.";
             return;
         }
-        
-        setupRecognition();
-        
-        voiceModeBtn.classList.add('active');
-        textModeBtn.classList.remove('active');
-        toggleContainer.classList.add('voice-active');
-        voiceInputContainer.classList.remove('hidden');
-        textInputContainer.classList.add('hidden');
-
         if (!sessionStorage.getItem('hasSeenVoiceIntro')) {
             showModal(voiceInstructions);
             sessionStorage.setItem('hasSeenVoiceIntro', 'true');
-        } else {
-            updateWelcomeMessage(currentPersona);
         }
-        voiceButton.classList.add('listening')
+        setupRecognition();
+        voiceModeBtn.classList.add('active');
+        textModeBtn.classList.remove('active');
+        voiceInputContainer.classList.remove('hidden');
+        textInputContainer.classList.add('hidden');
     });
 
     async function sendToServer(prompt) {
         try {
             const response = await fetch('/process_rant', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
                     prompt: prompt,
                     persona: currentPersona
                 })
@@ -198,8 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Server error');
             return data.response;
-        } catch (error)
-        {
+        } catch (error) {
             console.error(error);
             return `Error: ${error.message}`;
         }
@@ -216,16 +202,20 @@ document.addEventListener('DOMContentLoaded', () => {
         promptInput.value = '';
         promptInput.style.height = 'auto';
         sendButton.disabled = false;
+        featureButtonsContainer.classList.remove('hidden');
+        if (!sessionStorage.getItem('hasSeenDeconstructIntro')) {
+            showModal(deconstructInstructions);
+            sessionStorage.setItem('hasSeenDeconstructIntro', 'true');
+        }
     });
 
     function speak(text) {
-        if (recognition) recognition.abort();
+        if (recognition && isListening) recognition.stop();
         window.speechSynthesis.cancel();
-        
+
         const utterance = new SpeechSynthesisUtterance(text);
-        
         responseArea.textContent = text;
-        responseArea.classList.add('fade-in');
+
         utterance.onend = () => {
             if (isListening && recognition) {
                 recognition.start();
@@ -240,7 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
         window.speechSynthesis.cancel();
         stopButton.classList.add('hidden');
         voiceButton.classList.remove('hidden');
-        voiceButtonLabel.textContent = 'START RANTING!';
     }
 
     voiceButton.addEventListener('click', () => {
@@ -250,12 +239,144 @@ document.addEventListener('DOMContentLoaded', () => {
         recognition.start();
     });
 
-    stopButton.addEventListener('click', () => {
-        stopVoice();
-        updateWelcomeMessage(currentPersona);
-    });
+    stopButton.addEventListener('click', stopVoice);
 
     responseArea.addEventListener('animationend', () => {
         responseArea.classList.remove('fade-in');
+    });
+
+    function drawMindMap(data) {
+        const container = mindMapContainer;
+        let lastResponseAreaText = ''
+        const options = {
+            physics: {
+                solver: 'forceAtlas2Based',
+                forceAtlas2Based: {
+                    gravitationalConstant: -100,
+                    centralGravity: 0.015,
+                    springLength: 150,
+                    springConstant: 0.1,
+                    avoidOverlap: 0.6
+                },
+                stabilization: {
+                    iterations: 150
+                }
+            },
+            interaction: {
+                hover: true,
+                dragNodes: true,
+                dragView: true,
+                zoomView: true,
+                minZoom: 0.5,
+                maxZoom: 1.0
+            },
+            nodes: {
+                borderWidth: 3,
+                shape: "box",
+                scaling: { label: { enabled: true, min: 14, max: 30 } },
+                font: {
+                    size: 16,
+                    face: "Poppins",
+                    color: "#e0e0e0"
+                },
+                shadow: {
+                    enabled: true,
+                    color: 'rgba(0,0,0,0.5)',
+                    size: 10,
+                    x: 5,
+                    y: 5
+                },
+                color: {
+                    border: '#007bff',
+                    background: '#1e1e1e',
+                    highlight: {
+                        border: '#8A2BE2',
+                        background: '#1e1e1e'
+                    },
+                    hover: {
+                        border: '#8A2BE2',
+                        background: '#1e1e1e'
+                    }
+                }
+            },
+            edges: {
+                width: 2,
+                color: {
+                    color: '#555',
+                    highlight: '#8A2BE2',
+                    hover: '#8A2Be2'
+                },
+                arrows: {
+                    to: {
+                        enabled: true,
+                        scaleFactor: 0.8
+                    }
+                },
+                font: {
+                    align: 'middle',
+                    size: 12,
+                    color: '#e0e0e0',
+                    strokeWidth: 0,
+                    background: '#1e1e1e'
+                },
+                smooth: {
+                    type: 'dynamic'
+                },
+                shadow: {
+                    enabled: true,
+                    color: 'rgba(0,0,0,0.3)'
+                }
+            }
+        };
+
+        container.style.display = 'block';
+        mindMapNetwork = new vis.Network(container, data, options);
+
+        mindMapNetwork.on("stabilizationIterationsDone", function() {
+            mindMapNetwork.setOptions({
+                physics: false
+            });
+        });
+
+        mindMapNetwork.on("hoverNode", function(params) {
+            const node = this.body.data.nodes.get(params.node);
+            lastResponseAreaText = responseArea.textContent;
+            responseArea.textContent = node.hoverQuestion;
+        });
+
+        mindMapNetwork.on("blurNode", function() {
+            responseArea.textContent = lastResponseAreaText;
+        });
+    }
+
+    deconstructRantBtn.addEventListener('click', async () => {
+        const originalButtonText = deconstructRantBtn.innerHTML;
+        deconstructRantBtn.innerHTML = 'Analyzing...';
+        deconstructRantBtn.disabled = true;
+        fitViewBtn.classList.add('hidden');
+        mindMapContainer.style.display = 'block';
+        mindMapContainer.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--secondary-text-color);">Untangling your thoughts...</p>';
+
+        try {
+            const response = await fetch('/generate_mind_map', {
+                method: 'POST'
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Failed to generate mind map.');
+            drawMindMap(data);
+            fitViewBtn.classList.remove('hidden');
+        } catch (error) {
+            console.error('Mind map generation failed:', error);
+            mindMapContainer.innerHTML = `<p style="text-align: center; padding: 20px; color: var(--danger-color);">${error.message}</p>`;
+        } finally {
+            deconstructRantBtn.innerHTML = originalButtonText;
+            deconstructRantBtn.disabled = false;
+        }
+    });
+
+    fitViewBtn.addEventListener('click', () => {
+        if (mindMapNetwork) {
+            mindMapNetwork.fit();
+        }
     });
 });
