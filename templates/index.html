@@ -6,6 +6,7 @@
     <title>RANT.AI</title>
     <link rel="icon" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/icons/cpu.svg" type="image/svg+xml">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 </head>
 <body>
     <div id="instructions-modal" class="modal">
@@ -41,6 +42,7 @@
                 <span class="persona-icon">🤔</span>
                 <h3>Curious Mind</h3>
                 <p>Asks gentle, insightful questions.</p>
+            </button>
         </div>
     </nav>
 
@@ -66,8 +68,14 @@
         </button>
         <button id="stop-button" class="hidden">STOP RANTING!</button>
     </div>
+    
+    <div id="feature-buttons-container" class="button-container hidden">
+        <button id="deconstruct-rant-btn">🗺️ Deconstruct</button>
+        <button id="fit-view-btn">🎯 Center Map</button>
+    </div>
 
+    <div id="mind-map-container"></div>
+    
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
-
